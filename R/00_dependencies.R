@@ -27,7 +27,8 @@ library(colorspace)
 library(DiagrammeR)
 library(DiagrammeRsvg)
 library(rsvg)
-
+library(grid) # arrows
+library(devEMF)
 
 
 

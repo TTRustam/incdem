@@ -2,7 +2,87 @@ library(tidyverse)
 library(grid) # arrows
 library(DiagrammeR)
 library(ggplot2)
+library(devEMF)
+library(rsvg)
 
+windowsFonts(
+  Arial = windowsFont("Arial")
+)
+# ------------------------------------------------------------------------ #
+# flow chart
+g1 <- grViz("
+digraph strobe {
+
+graph [
+layout = dot,
+rankdir = TB,
+nodesep = 0.3,
+ranksep = 0.5
+]
+
+node [
+shape = box,
+style = rounded,
+fontname = Arial,
+fontsize = 10,
+margin = 0.12
+]
+
+edge [
+arrowhead = normal,
+penwidth = 1
+]
+
+A [label='Health and Retirement Study (HRS)\nWaves 1-16\nN = 45,234']
+
+B [label='Participants eligible for\nLanga-Weir dementia classification\nN = 42,412']
+
+C [label='Participants after longitudinal \nconsistency checks\nN = 33,379']
+
+D [label='Participants with ≥2 \nvalid observations\nN = 15,856']
+
+E [label='Participants within\nstudy period (2004-2019)\nN = 15,839']
+
+F [label='Final analytic sample\nN = 15,613']
+
+X1 [label='Excluded\n<2 observations\nn = 2,822']
+
+X2 [label='Excluded\nInconsistent longitudinal records\n(eg, observations after death)\nn = 9,033']
+
+X3 [label='Excluded\n<2 observations\nafter consistency checks\nn = 17,523']
+
+X4 [label='Excluded\nOutside study period\nn = 17']
+
+X5 [label='Excluded\n<2 observations\nwithin study period\nn = 226']
+
+A -> B
+B -> C
+C -> D
+D -> E
+E -> F
+
+A -> X1 [dir=none]
+B -> X2 [dir=none]
+C -> X3 [dir=none]
+D -> X4 [dir=none]
+E -> X5 [dir=none]
+
+}
+")
+
+g1
+
+# save as PDF
+svg <- export_svg(g1)
+
+rsvg_pdf(
+  charToRaw(svg),
+  file = "figures_annex/flow_chart1.pdf"
+)
+# eFigure 1. Flow Diagram of Participant Selection From the Health and Retirement Study (HRS), 2004-2019
+svg <- DiagrammeRsvg::export_svg(g1)
+# temp svg
+writeLines(svg, "eFigure1.svg")
 # ------------------------------------------------------------------------ #
 # example for 2 people
 df <- tibble(
@@ -27,6 +107,10 @@ df <- df %>%
   mutate(y_observed = id * 1.5,
          y_absorbing = y_observed - 0.5)
 
+windowsFonts(
+  Arial = windowsFont("Arial")
+)
+
 # plot
 ggplot(df, aes(x = wave)) +
   # upper line actual obs
@@ -46,13 +130,15 @@ ggplot(df, aes(x = wave)) +
            label = "All observations after first 'Yes (Dementia)' are treated as 'Yes'", 
            color = "red", size = 4, fontface = "bold") +
   scale_x_continuous(breaks = 5:16) +
-  scale_y_continuous(breaks = c(1.5, 3), labels = c("Person 1", "Person 2")) +
+  scale_y_continuous(breaks = c(1.5, 3), 
+                     labels = c("Person 1", "Person 2"),
+                     expand = expansion(mult = c(0.01, 0.1))) +
   theme_minimal(base_family = "Arial", base_size = 10) +
-  theme(  axis.title = element_text(size = 10, color = "black", face = "bold"),
-          axis.text = element_text(size = 10, color = "black"),
-          strip.text = element_text(size = 10, face = "bold", color = "black"),
-          legend.title = element_text(size = 10, face = "bold", color = "black"),
-          legend.text = element_text(size = 10, color = "black"),
+  theme(  axis.title      = element_text(size = 10, color = "black", face = "bold"),
+          axis.text       = element_text(size = 10, color = "black"),
+          strip.text      = element_text(size = 10, face = "bold", color = "black"),
+          legend.title    = element_text(size = 10, face = "bold", color = "black"),
+          legend.text     = element_text(size = 10, color = "black"),
           legend.position = "bottom") +
   labs(x     = "HRS Wave",
        color = "Dementia status",
@@ -63,6 +149,8 @@ ggplot(df, aes(x = wave)) +
   scale_color_brewer(
     palette = "Dark2"
   )
+
+ggsave("figure1.emf")
 
 ggsave(
   filename = "figures_annex/state_registration.pdf",
@@ -140,6 +228,11 @@ rsvg_pdf(
   charToRaw(svg),
   file = "figures_annex/state_space_diagram1.pdf"
 )
+
+svg <- DiagrammeRsvg::export_svg(g)
+
+writeLines(svg, "Figure2.svg")
+
 # ------------------------------------------------------------------------ #
 # ADJ and UNADJ trans hazards
 haz_unadj <- read_csv("Data/model2/unadj_haz_replicates.csv.gz", show_col_types = FALSE) %>% 
@@ -226,6 +319,16 @@ haz %>%
     color = "Year",
     fill = "Year"
   )
+
+
+
+ggsave(
+  "figure3.emf",
+  device = devEMF::emf,
+  width = 6,
+  height = 4
+)
+
 
 ggsave(
   filename = "figures_annex/haz_2004_2019_adj_uadj.pdf",
@@ -370,6 +473,16 @@ probs %>%
     fill = "To"
   )
 
+
+ggsave(
+  "figure4.emf",
+  device = devEMF::emf,
+  width = 6,
+  height = 4
+)
+
+
+
 ggsave(
   filename = "figures_annex/trans_prob.pdf",
   device = cairo_pdf,
@@ -461,6 +574,15 @@ prop |>
     legend.position = "bottom",
     panel.spacing = unit(1.2, "lines")
   )
+
+
+ggsave(
+  "figure5.emf",
+  device = devEMF::emf,
+  width = 6,
+  height = 4
+)
+
 
 
 ggsave(
